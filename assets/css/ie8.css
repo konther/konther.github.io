@@ -1,26 +1,27 @@
 /*
-	Aerial by HTML5 UP
-	html5up.net | @n33co
+	Eventually by HTML5 UP
+	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
-/* Header */
+/* BG */
 
-	#header nav a {
-		position: relative;
-		border: solid 1px #fff;
-		border-radius: 100%;
-		-ms-behavior: url("assets/js/ie/PIE.htc");
+	#bg {
+		-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=25)";
 	}
 
-		#header nav a:before {
-			border: 0;
-		}
+/* Type */
 
-/* Footer */
+	body, input, select, textarea {
+		color: #fff;
+	}
 
-	#footer {
-		background-image: url("images/ie/footer.png");
-		background-position: bottom left;
-		background-repeat: repeat-x;
+/* Form */
+
+	input[type="text"],
+	input[type="password"],
+	input[type="email"],
+	select,
+	textarea {
+		border: solid 2px #fff;
 	}
