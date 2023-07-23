@@ -22,10 +22,10 @@ body {
 
 <div id="map" style="height: 100vh;"></div>
 
-<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-     integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
-     crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+	<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin=""></script>
+	<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+	<script src="https://unpkg.com/leaflet-image"></script>
+
 
 <script>
 // Inicializar o mapa e definir a posição e o nível de zoom inicial
@@ -33,14 +33,26 @@ var map = L.map('map').setView([-22.9332614,-43.4324536], 10);
 
 // Adicionar uma camada de base ao mapa (neste exemplo, usando o OpenStreetMap)
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    attribution: '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
 var markers = L.markerClusterGroup();
 
 function createMarker(id, lat, lng, description) {
-    var marker = L.marker([lat, lng]).bindPopup("<div style='width:300px'><p style='color:#000000'>ID: " + id + "<br>" + description + "<br><img src='http://187.111.99.18:9004/?CODE=" + id + "' width='100%'><br><a href='http://aplicativo.cocr.com.br/camera/" + id + "' target='_blank'>Ver em tamanho maior</a></p><div>");
+    var marker = L.marker([lat, lng]).bindPopup("<div style='width:300px'><p style='color:#000000'>ID: " + id + "<br>" + description + "<br><img id='popup-image-" + id + "' src='http://187.111.99.18:9004/?CODE=" + id + "' width='100%'><br><a href='http://aplicativo.cocr.com.br/camera/" + id + "' target='_blank'>Ver em tamanho maior</a></p><div>");
     markers.addLayer(marker);
+	
+            marker.on('popupopen', function () {
+                // Carrega a imagem apenas quando o pop-up é aberto
+                var popupImage = document.getElementById('popup-image-' + id);
+                popupImage.src = "http://187.111.99.18:9004/?CODE=" + id ;
+				});
+				
+            marker.on('popupclose', function () {
+                // Substitui a imagem por uma imagem estática quando o pop-up é fechado
+                var popupImage = document.getElementById('popup-image-' + id);
+                popupImage.src = 'none.jpg';
+            });
 }
 
 // Adicionar marcadores ao grupo de marcadores
