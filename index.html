@@ -68,7 +68,7 @@ function createMarker(lat, lng, description, id) {
         // Define um ouvinte de evento para reiniciar o vídeo após o término
         popupVideo.addEventListener('ended', function () {
             // Atualiza a URL do vídeo para forçar o navegador a carregar uma nova versão
-            popupVideo.src = 'https://app.tixxi.rio/api/v1/xcor/video/' + standardizedId + '-2023?' + new Date().getTime();
+            popupVideo.src = 'https://app.tixxi.rio/api/v1/xcor/video/' + standardizedId + '-B0914?' + new Date().getTime();
             popupVideo.play(); // Inicia a reprodução novamente
         });
     });
@@ -99,7 +99,7 @@ function showTab(id, tab) {
         // Carregue o vídeo somente quando a guia estiver ativa
         var standardizedId = id.toString().padStart(6, '0');
         var popupVideo = document.getElementById('popup-video-' + id);
-        popupVideo.src = 'https://app.tixxi.rio/api/v1/xcor/video/' + standardizedId + '-2023?' + new Date().getTime();
+        popupVideo.src = 'https://app.tixxi.rio/api/v1/xcor/video/' + standardizedId + '-B0914?' + new Date().getTime();
         popupVideo.play();
 
         // Carregue a imagem somente quando a guia estiver ativa pela primeira vez
