@@ -13,7 +13,7 @@
 </head>
 <body>
 
-<div id="map" style="height: 100vh;"></div>
+<div id="map" style="height: 99vh;"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
@@ -42,19 +42,11 @@ function createMarker(lat, lng, description, id) {
     // Padroniza o ID para seis dígitos
     var standardizedId = id.toString().padStart(6, '0');
 
-    var marker = L.marker([lat, lng],{icon: cameraIcon}).bindPopup("<div style='width:300px'><p style='color:#000000;text-align:center;padding:0px;margin:0px'>ID: " + id + "<br>" + description + "<br>" +
-        "<div id='popup-tabs-" + id + "'><p style='text-align:center;padding:10px;margin:0px'>" +
-        "<button id='video-tab-" + id + "' onclick='showTab(" + id + ", \"video\")' style='width:140px;height:25px'>H.264</button>" +
-        "<button id='image-tab-" + id + "' onclick='showTab(" + id + ", \"image\")' style='width:140px;height:25px'>MJPEG</button>" +
-        "</p></div>" +
+    var marker = L.marker([lat, lng],{icon: cameraIcon}).bindPopup("<div style='width:300px'><p style='color:#000000;text-align:center;margin:5px'>ID: " + id + "<br>" + description + "<br>" +
         "<div id='popup-content-" + id + "'>" +
         "<div id='video-content-" + id + "' style='display:none;'>" +
         "<video id='popup-video-" + id + "' controls autoplay width='100%'><source src='' type='video/mp4'></video>" +
         "<br><p style='color:#000000;text-align:center;padding:0px;margin:0px'><a href='http://aplicativo.cocr.com.br/camera/" + id + "' target='_blank'>Ver em tamanho maior</a></p>" +
-        "</div>" +
-        "<div id='image-content-" + id + "' style='display:none;'>" +
-        "<img id='popup-image-" + id + "' src='' width='100%'>" +
-        "<br><p style='color:#000000;text-align:center;padding:0px;margin:0px'><a href='http://187.111.99.18:9004/?CODE=" + id + "' target='_blank'>Ver em tamanho maior</a></p>" +
         "</div>" +
         "</div></p></div>");
     markers.addLayer(marker);
@@ -63,7 +55,6 @@ function createMarker(lat, lng, description, id) {
         showTab(id, 'video'); // Mostra a guia de vídeo ao abrir o popup
 
         var popupVideo = document.getElementById('popup-video-' + id);
-        var popupImage = document.getElementById('popup-image-' + id);
 
         // Define um ouvinte de evento para reiniciar o vídeo após o término
         popupVideo.addEventListener('ended', function () {
@@ -74,49 +65,29 @@ function createMarker(lat, lng, description, id) {
     });
 
     marker.on('popupclose', function () {
-        // Pausa o vídeo ou a imagem quando o pop-up é fechado
+        // Pausa o vídeo quando o pop-up é fechado
         var popupVideo = document.getElementById('popup-video-' + id);
-        var popupImage = document.getElementById('popup-image-' + id);
 
         popupVideo.pause();
         popupVideo.src = '';
-        popupImage.src = '';
     });
 }
 
 function showTab(id, tab) {
-    var videoTab = document.getElementById('video-tab-' + id);
-    var imageTab = document.getElementById('image-tab-' + id);
     var videoContent = document.getElementById('video-content-' + id);
-    var imageContent = document.getElementById('image-content-' + id);
 
     if (tab === 'video') {
-        videoTab.classList.add('active');
-        imageTab.classList.remove('active');
         videoContent.style.display = 'block';
-        imageContent.style.display = 'none';
 
         // Carregue o vídeo somente quando a guia estiver ativa
         var standardizedId = id.toString().padStart(6, '0');
         var popupVideo = document.getElementById('popup-video-' + id);
         popupVideo.src = 'https://app.tixxi.rio/api/v1/xcor/video/' + standardizedId + '-B0914?' + new Date().getTime();
         popupVideo.play();
-
-        // Carregue a imagem somente quando a guia estiver ativa pela primeira vez
-        var popupImage = document.getElementById('popup-image-' + id);
-        popupImage.src = '';
-        
-    } else if (tab === 'image') {
-        videoTab.classList.remove('active');
-        imageTab.classList.add('active');
-        videoContent.style.display = 'none';
-        imageContent.style.display = 'block';
-
-        // Carregue a imagem somente quando a guia estiver ativa pela primeira vez
-        var popupImage = document.getElementById('popup-image-' + id);
-        popupImage.src = 'http://187.111.99.18:9004/?CODE=' + id ;
     }
 }
+
+
 
 fetch('https://aplicativo.cocr.com.br/cameras_api')
     .then(response => response.text())
