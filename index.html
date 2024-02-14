@@ -1,141 +1,141 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
-<title>Câmeras COR Rio</title>
-<meta charset="UTF-8">
-<meta name="robots" content="noindex">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>konther.github.io</title>
+    <!-- Adicione o script do Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.4.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.4.1/firebase-auth-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+            padding: 20px;
+        }
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
 
-</head>
-<body>
+        h1 {
+            margin-bottom: 20px;
+        }
 
-<div id="map" style="height: 99vh;"></div>
+        label {
+            display: block;
+            margin-bottom: 5px;
+            text-align: left;
+        }
 
-<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
 
-<script>
-var map = L.map('map').setView([-22.9332614,-43.4324536], 10);
+        button {
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(map);
+        button:hover {
+            background-color: #45a049;
+        }
 
-var markers = L.markerClusterGroup({ maxClusterRadius: 50 });
+        button:active {
+            background-color: #3e8e41;
+        }
+    </style>
+    <script>
+        // Configure o Firebase com as credenciais do seu projeto
+        const firebaseConfig = {
+  apiKey: "AIzaSyA-Vyf6PBHF9UrM6J6bDgPoYneoYMQ2Yq8",
+  authDomain: "kontherapp.firebaseapp.com",
+  projectId: "kontherapp",
+  storageBucket: "kontherapp.appspot.com",
+  messagingSenderId: "243525750539",
+  appId: "1:243525750539:web:34ac8c72a555b541951c0e",
+  measurementId: "G-1B07RL7WNG"
+        };
+        
+        // Inicialize o Firebase
+        firebase.initializeApp(firebaseConfig);
 
-var cameraIcon = L.icon({
-    iconUrl: 'sv.png',
-    shadowUrl: 'sv-shadow.png',
+        // Função para autenticar o usuário com e-mail/senha
+        function signIn() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
 
-    iconSize:     [42, 47], // size of the icon
-    shadowSize:   [66, 47], // size of the shadow
-    iconAnchor:   [21, 45], // point of the icon which will correspond to marker's location
-    shadowAnchor: [21, 47],  // the same for the shadow
-    popupAnchor:  [0, -33] // point from which the popup should open relative to the iconAnchor
-});
+            // Use firebase aqui
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Autenticação bem-sucedida
+                    const user = userCredential.user;
+                    console.log("Usuário autenticado:", user);
+                    // Redirecione para a página protegida
+                    window.location.href = "mapa.html";
+                })
+                .catch((error) => {
+                    // Ocorreu um erro ao autenticar o usuário
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.error("Erro ao autenticar o usuário:", errorMessage);
+                    // Exiba a mensagem de erro ao usuário (opcional)
+                    alert(errorMessage);
+					
+					
+					
+                });
+        }
+		
+		    // Verifique se o usuário está autenticado antes de redirecionar
+    window.onload = function() {
+        const isAuthenticated = localStorage.getItem("userAuthenticated");
+        if (isAuthenticated) {
+            // Redirecione para a página protegida se o usuário estiver autenticado
+            window.location.href = "mapa.html";
+        }
+		
+		
+    };
 
-function createMarker(lat, lng, description, id) {
-    // Padroniza o ID para seis dígitos
-    var standardizedId = id.toString().padStart(6, '0');
-
-    var marker = L.marker([lat, lng],{icon: cameraIcon}).bindPopup("<div style='width:300px'><p style='color:#000000;text-align:center;padding:0px;margin:0px'>ID: " + id + "<br>" + description + "<br>" +
-        "<div id='popup-tabs-" + id + "'><p style='text-align:center;padding:10px;margin:0px'>" +
-        "<button id='video-tab-" + id + "' onclick='showTab(" + id + ", \"video\")' style='width:140px;height:25px'>H.264</button>" +
-        "<button id='image-tab-" + id + "' onclick='showTab(" + id + ", \"image\")' style='width:140px;height:25px'>MJPEG</button>" +
-        "</p></div>" +
-        "<div id='popup-content-" + id + "'>" +
-        "<div id='video-content-" + id + "' style='display:none;'>" +
-        "<video id='popup-video-" + id + "' controls autoplay width='100%'><source src='' type='video/mp4'></video>" +
-        "<br><p style='color:#000000;text-align:center;padding:0px;margin:0px'><a href='http://aplicativo.cocr.com.br/camera/" + id + "' target='_blank'>Ver em tamanho maior</a></p>" +
-        "</div>" +
-        "<div id='image-content-" + id + "' style='display:none;'>" +
-        "<img id='popup-image-" + id + "' src='' width='100%'>" +
-        "<br><p style='color:#000000;text-align:center;padding:0px;margin:0px'><a href='https://app.tixxi.rio/outvideo/?CODE=" + id + "&KEY=B0914' target='_blank'>Ver em tamanho maior</a></p>" +
-        "</div>" +
-        "</div></p></div>");
-    markers.addLayer(marker);
-
-    marker.on('popupopen', function () {
-        showTab(id, 'video'); // Mostra a guia de vídeo ao abrir o popup
-
-        var popupVideo = document.getElementById('popup-video-' + id);
-        var popupImage = document.getElementById('popup-image-' + id);
-
-        // Define um ouvinte de evento para reiniciar o vídeo após o término
-        popupVideo.addEventListener('ended', function () {
-            // Atualiza a URL do vídeo para forçar o navegador a carregar uma nova versão
-            popupVideo.src = 'https://app.tixxi.rio/api/v1/xcor/video/' + standardizedId + '-B0914?' + new Date().getTime();
-            popupVideo.play(); // Inicia a reprodução novamente
+    // Evento de teclado para detectar pressionar Enter no campo de senha
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById("password").addEventListener("keyup", function(event) {
+            // Verifica se a tecla pressionada é Enter
+            if (event.key === "Enter") {
+                // Chama a função signIn() para enviar as informações do formulário
+                signIn();
+            }
         });
     });
-
-    marker.on('popupclose', function () {
-        // Pausa o vídeo ou a imagem quando o pop-up é fechado
-        var popupVideo = document.getElementById('popup-video-' + id);
-        var popupImage = document.getElementById('popup-image-' + id);
-
-        popupVideo.pause();
-        popupVideo.src = '';
-        popupImage.src = '';
-    });
-}
-
-function showTab(id, tab) {
-    var videoTab = document.getElementById('video-tab-' + id);
-    var imageTab = document.getElementById('image-tab-' + id);
-    var videoContent = document.getElementById('video-content-' + id);
-    var imageContent = document.getElementById('image-content-' + id);
-
-    if (tab === 'video') {
-        videoTab.classList.add('active');
-        imageTab.classList.remove('active');
-        videoContent.style.display = 'block';
-        imageContent.style.display = 'none';
-
-        // Carregue o vídeo somente quando a guia estiver ativa
-        var standardizedId = id.toString().padStart(6, '0');
-        var popupVideo = document.getElementById('popup-video-' + id);
-        popupVideo.src = 'https://app.tixxi.rio/api/v1/xcor/video/' + standardizedId + '-B0914?' + new Date().getTime();
-        popupVideo.play();
-
-        // Carregue a imagem somente quando a guia estiver ativa pela primeira vez
-        var popupImage = document.getElementById('popup-image-' + id);
-        popupImage.src = '';
-        
-    } else if (tab === 'image') {
-        videoTab.classList.remove('active');
-        imageTab.classList.add('active');
-        videoContent.style.display = 'none';
-        imageContent.style.display = 'block';
-
-        // Carregue a imagem somente quando a guia estiver ativa pela primeira vez
-        var popupImage = document.getElementById('popup-image-' + id);
-        popupImage.src = 'https://app.tixxi.rio/outvideo/?CODE=' + id + '&KEY=B0914';
-    }
-}
-
-fetch('https://aplicativo.cocr.com.br/cameras_api')
-    .then(response => response.text())
-    .then(data => {
-        var linhas = data.split("\n");
-        for (var i = 0; i < linhas.length; i++) {
-            var campos = linhas[i].split(";");
-            if (campos.length >= 4) {
-                var lat = parseFloat(campos[0]);
-                var lng = parseFloat(campos[1]);
-                var description = campos[2];
-                var id = campos[3].trim();
-                createMarker(lat, lng, description, id);
-            }
-        }
-        map.addLayer(markers);
-    })
-    .catch(error => console.error('Erro ao obter os dados:', error));
-</script>
-
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>konther.github.io</h1>
+        <!-- Formulário de login -->
+        <label for="email">E-mail:</label>
+        <input type="email" id="email"><br>
+        <label for="password">Senha:</label>
+        <input type="password" id="password"><br>
+        <button onclick="signIn()">Login</button>
+    </div>
 </body>
 </html>
