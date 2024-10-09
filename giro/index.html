@@ -26,35 +26,53 @@
             width: 100%;
             height: 100%;
         }
+
+        /* Estilo para o nome do vídeo no canto superior direito */
+        #video-name {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5); /* Fundo semi-transparente */
+            padding: 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
     <div id="video-container">
-        <video id="video-player" controls autoplay muted>
-            <!-- Vídeo padrão inicial -->
-            <source src="https://app.tixxi.rio/api/v1/xcor/video/000150-B0914" type="video/mp4">
+        <video id="video-player" autoplay muted>
             Seu navegador não suporta o elemento de vídeo.
         </video>
         <video id="next-video-player" style="display: none;"></video>
+        <!-- Elemento para exibir o nome do vídeo -->
+        <div id="video-name">Nome do vídeo</div>
     </div>
 
     <script>
-        // URL do arquivo de texto externo contendo as IDs disponíveis
         var idsURL = "https://aplicativo.cocr.com.br/cameras_api";
         var nextVideoURL = null;
+        var nextVideoName = "";
+        var nextVideoID = "";
+        var nextVideoPreloaded = false;
 
-        // Função para obter as IDs disponíveis
+        // Função para obter as IDs e nomes disponíveis
         function getAvailableIDs(callback) {
             var xhr = new XMLHttpRequest();
             xhr.open("GET", idsURL);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
                     var lines = xhr.responseText.split("\n");
-                    var ids = lines.map(function(line) {
+                    var videos = lines.map(function(line) {
                         var fields = line.split(";");
-                        return fields[3]; // Quarto campo contém a ID
+                        return {
+                            id: fields[3],  // ID numérica
+                            name: fields[2] // Nome do vídeo
+                        };
                     });
-                    callback(ids);
+                    callback(videos);
                 }
             };
             xhr.send();
@@ -62,65 +80,97 @@
 
         // Função para construir uma URL de vídeo com uma ID específica
         function buildVideoURL(id) {
-            var paddedID = ("000000" + id).slice(-6); // Preenche com zeros à esquerda
+            var paddedID = ("000000" + id).slice(-6);
             var timestamp = Date.now();
             return "https://app.tixxi.rio/api/v1/xcor/video/" + paddedID + "-B0914?" + timestamp;
         }
 
-        // Função para escolher aleatoriamente uma ID de vídeo
-        function getRandomVideoID(ids) {
-            var randomIndex = Math.floor(Math.random() * ids.length);
-            return ids[randomIndex];
+        // Função para escolher aleatoriamente um vídeo
+        function getRandomVideo(videos) {
+            var randomIndex = Math.floor(Math.random() * videos.length);
+            return videos[randomIndex];
         }
 
-        // Função para carregar o próximo vídeo
-        function loadNextVideo() {
-            getAvailableIDs(function(ids) {
-                var videoID = getRandomVideoID(ids);
-                nextVideoURL = buildVideoURL(videoID); // Define a URL do próximo vídeo
+        // Função para pré-carregar o próximo vídeo
+        function preloadNextVideo() {
+            getAvailableIDs(function(videos) {
+                var video = getRandomVideo(videos);
+                nextVideoURL = buildVideoURL(video.id);
+                nextVideoName = video.name;
+                nextVideoID = video.id;  // Captura também a ID numérica
                 var nextVideoPlayer = document.getElementById("next-video-player");
+
+                nextVideoPlayer.src = nextVideoURL;
+                nextVideoPlayer.load();
+
+                nextVideoPlayer.addEventListener("canplaythrough", function() {
+                    nextVideoPreloaded = true;
+                }, { once: true });
+
                 nextVideoPlayer.onerror = function() {
-                    // Se ocorrer um erro ao carregar o próximo vídeo, tente carregar o próximo
-                    loadNextVideo();
+                    console.error("Erro ao carregar o vídeo: " + nextVideoURL);
+                    preloadNextVideo(); // Tenta carregar outro vídeo em caso de erro
                 };
-                nextVideoPlayer.src = nextVideoURL; // Define a URL do próximo vídeo para pré-carregar
-                nextVideoPlayer.load(); // Carrega o próximo vídeo
             });
         }
 
-        // Carrega o próximo vídeo durante a inicialização da página
-        loadNextVideo();
+        // Trocar para o próximo vídeo
+        function switchToNextVideo() {
+            if (nextVideoPreloaded) {
+                var videoPlayer = document.getElementById("video-player");
+                var videoNameElement = document.getElementById("video-name");
+
+                // Atualiza o vídeo principal com o próximo
+                videoPlayer.src = nextVideoURL;
+
+                // Exibe tanto a ID quanto o nome do vídeo no elemento #video-name
+                videoNameElement.textContent = nextVideoID + " - " + nextVideoName;
+
+                videoPlayer.play();
+
+                nextVideoPreloaded = false;
+                preloadNextVideo(); // Precarregar o próximo vídeo
+            }
+        }
+
+        // Carregar o primeiro vídeo imediatamente ao iniciar a página
+        function loadFirstVideo() {
+            getAvailableIDs(function(videos) {
+                var video = getRandomVideo(videos);
+                var videoPlayer = document.getElementById("video-player");
+                var videoNameElement = document.getElementById("video-name");
+
+                var videoURL = buildVideoURL(video.id);
+                videoPlayer.src = videoURL;
+
+                // Exibe a ID e o nome do vídeo no primeiro carregamento
+                videoNameElement.textContent = video.id + " - " + video.name;
+
+                videoPlayer.play();
+
+                // Pré-carregar o próximo vídeo enquanto o primeiro é reproduzido
+                preloadNextVideo();
+            });
+        }
+
+        // Detectar quando o vídeo atual está perto do fim e pré-carregar o próximo
+        document.getElementById("video-player").addEventListener("timeupdate", function() {
+            var videoPlayer = document.getElementById("video-player");
+            var timeRemaining = videoPlayer.duration - videoPlayer.currentTime;
+
+            if (timeRemaining < 10 && !nextVideoPreloaded) {
+                preloadNextVideo();
+            }
+        });
 
         // Troca para o próximo vídeo quando o vídeo atual termina
         document.getElementById("video-player").addEventListener("ended", function() {
-            var videoPlayer = document.getElementById("video-player");
-            var nextVideoPlayer = document.getElementById("next-video-player");
-			videoPlayer.removeAttribute("controls"); // Remove os controles do player de vídeo
-            videoPlayer.src = nextVideoURL; // Atualiza o player atual com a URL do próximo vídeo
-            videoPlayer.play(); // Inicia a reprodução do próximo vídeo no player atual
-            nextVideoPlayer.style.display = "none"; // Esconde o player de pré-carregamento
-            loadNextVideo(); // Carrega o próximo vídeo para pré-carregar
-            nextVideoURL = null; // Limpa a URL do próximo vídeo
+            switchToNextVideo();
         });
-		
-		// Oculta os controles do primeiro vídeo ao carregar a página
-		document.addEventListener("DOMContentLoaded", function() {
-		var videoPlayer = document.getElementById("video-player");
-		videoPlayer.removeAttribute("controls"); // Remove os controles do player de vídeo
-		});
 
-        // Ativa o modo de tela cheia ao clicar no vídeo
-        document.getElementById("video-player").addEventListener("click", function() {
-            var videoPlayer = document.getElementById("video-player");
-            if (videoPlayer.requestFullscreen) {
-                videoPlayer.requestFullscreen();
-            } else if (videoPlayer.mozRequestFullScreen) { /* Firefox */
-                videoPlayer.mozRequestFullScreen();
-            } else if (videoPlayer.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-                videoPlayer.webkitRequestFullscreen();
-            } else if (videoPlayer.msRequestFullscreen) { /* IE/Edge */
-                videoPlayer.msRequestFullscreen();
-            }
+        // Carrega o primeiro vídeo ao iniciar a página
+        document.addEventListener("DOMContentLoaded", function() {
+            loadFirstVideo(); // Carrega o primeiro vídeo
         });
     </script>
 </body>
