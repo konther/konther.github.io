@@ -113,8 +113,9 @@ function showTab(id, tab) {
         imageContent.style.display = 'block';
 
         // Carregue a imagem somente quando a guia estiver ativa pela primeira vez
+        var standardizedId = id.toString().padStart(6, '0');
         var popupImage = document.getElementById('popup-image-' + id);
-        popupImage.src = 'https://dev.tixxi.rio/outvideo2/?CODE=' + id + '&KEY=B0914';
+        popupImage.src = 'https://aplicativo.cocr.com.br/camera/stream/' + standardizedId;
     }
 }
 
